@@ -1,12 +1,10 @@
 'use client'
-// Fix for Vercel Build Error: Force dynamic rendering for useSearchParams
-export const dynamic = 'force-dynamic'
-
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '../utils/supabaseClient'
 
-export default function BookingPage() {
+// 1. This is the component that uses useSearchParams
+function BookingContent() {
   const router = useRouter()
   const searchParams = useSearchParams() 
   
@@ -231,7 +229,6 @@ export default function BookingPage() {
     }
 
     // 3. SAVE
-    // Note: We recalculate cost here securely just in case
     const diffTime = Math.abs(end.getTime() - start.getTime())
     const durationDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) 
     const totalCost = durationDays * (type === 'FAMILY' ? 5 : 8)
@@ -248,7 +245,6 @@ export default function BookingPage() {
     if (error) {
       setMsg('Error saving.')
     } else {
-      // 4. CONDITIONAL SCORE DEDUCTION
       if (bookingStatus === 'CONFIRMED') {
         const { data: familyData } = await supabase.from('families').select('base_priority_score').eq('id', familyId).single()
         const newScore = (familyData?.base_priority_score || 0) - totalCost
@@ -295,7 +291,6 @@ export default function BookingPage() {
               </div>
             </div>
 
-            {/* === NEW BILLING SUMMARY SECTION === */}
             {bill && (
               <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-3">
                 <h3 className="font-bold text-gray-800 border-b pb-2 border-gray-300">Trip Score Invoice</h3>
@@ -323,7 +318,6 @@ export default function BookingPage() {
                 </div>
               </div>
             )}
-            {/* =================================== */}
 
             {msg && (
               <div className={`p-4 rounded-lg text-sm font-bold text-center ${msg.includes('✅') ? 'bg-green-100 text-green-800' : msg.includes('⏳') ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
@@ -340,7 +334,6 @@ export default function BookingPage() {
           </form>
         </div>
         
-        {/* ACTIVE BOOKINGS LIST */}
         {activeBookings.length > 0 && (
           <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
             <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
@@ -380,5 +373,14 @@ export default function BookingPage() {
         )}
       </div>
     </div>
+  )
+}
+
+// 2. This is the Main Page Wrapper that satisfies Vercel
+export default function BookingPage() {
+  return (
+    <Suspense fallback={<div className="p-10 text-center">Loading Form...</div>}>
+      <BookingContent />
+    </Suspense>
   )
 }
