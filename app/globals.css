@@ -1,26 +1,142 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* SCREENSHOT PALETTE VARIABLES */
+  --farm-cream: #F1F3E0;        /* Main Page Background */
+  --farm-sage-card: #D2DCB6;    /* The Solid Green Cards */
+  --farm-green-btn: #8FA885;    /* Primary Action Button (Slightly darker sage) */
+  --farm-olive-text: #4A5D44;   /* Dark Text / Headings */
+  --farm-badge: #AEC2A5;        /* Slightly darker sage for list items */
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--farm-cream);
+  --color-foreground: var(--farm-olive-text);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* 1. GLOBAL DEFAULTS */
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background-color: var(--farm-cream) !important;
+  color: var(--farm-olive-text) !important;
   font-family: Arial, Helvetica, sans-serif;
+  letter-spacing: -0.01em; /* Tighter modern spacing */
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6, strong {
+  color: var(--farm-olive-text) !important;
+}
+
+/* 2. COMPONENT OVERRIDES (Matching the Image) */
+
+/* Page Backgrounds */
+.bg-gray-50 {
+  background-color: var(--farm-cream) !important;
+}
+
+/* THE CARDS (Score, Calendar Btn, Leaderboard Btn)
+   In the image, these are NOT white. They are a Solid Pale Sage. 
+*/
+.bg-white {
+  background-color: var(--farm-sage-card) !important;
+  border: none !important;
+  box-shadow: 0 4px 6px -1px rgba(74, 93, 68, 0.1) !important; /* Soft olive shadow */
+  border-radius: 16px !important; /* Rounded corners like image */
+}
+
+/* PRIMARY BUTTON (Book Dates) 
+   In image: A darker, solid green bar.
+*/
+.bg-blue-600 {
+  background-color: var(--farm-green-btn) !important;
+  color: #2F3E2C !important; /* Dark Olive Text for contrast */
+  border: none !important;
+  border-radius: 16px !important;
+  font-weight: 700 !important;
+}
+.bg-blue-600:hover {
+  background-color: var(--farm-olive-text) !important;
+  color: #F1F3E0 !important; /* Light text on hover */
+}
+
+/* TEXT COLOR OVERRIDES */
+/* Force all gray text to be our Theme Olive */
+.text-gray-600, .text-gray-500, .text-gray-700, .text-gray-800, .text-gray-900 {
+  color: var(--farm-olive-text) !important;
+}
+.text-blue-900, .text-blue-800, .text-blue-600 {
+  color: var(--farm-olive-text) !important;
+}
+
+/* 3. THE "EMOJI TO ICON" TRICK 
+   This filter strips the color from emojis (like 📅 🏆) 
+   and makes them look like flat, dark icons.
+*/
+button span, .text-2xl, .react-calendar__navigation button {
+  filter: grayscale(100%) opacity(0.8);
+}
+
+/* 4. INPUTS & FORMS 
+   Keep these lighter so they are readable
+*/
+input, select, textarea {
+  background-color: #FAFCF0 !important; /* Lighter Cream */
+  color: var(--farm-olive-text) !important;
+  border: 2px solid var(--farm-sage-card) !important;
+  border-radius: 12px;
+}
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--farm-olive-text) !important;
+}
+
+/* 5. CALENDAR SPECIFIC 
+   Needs to blend with the card theme
+*/
+.react-calendar { 
+  background: var(--farm-sage-card) !important; /* Match card background */
+  border: none !important;
+  border-radius: 12px;
+  color: var(--farm-olive-text) !important;
+}
+
+.react-calendar__navigation button {
+  color: var(--farm-olive-text) !important;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.react-calendar__tile {
+  color: var(--farm-olive-text);
+  font-weight: 600;
+}
+
+.react-calendar__tile:enabled:hover {
+  background-color: rgba(255,255,255,0.3) !important;
+  border-radius: 8px;
+}
+
+/* "Today" Highlight */
+.react-calendar__tile--now {
+  background: var(--farm-olive-text) !important;
+  color: var(--farm-cream) !important;
+  border-radius: 8px;
+}
+
+/* Booked Dates */
+.booked-date {
+  background-color: rgba(74, 93, 68, 0.2) !important; /* Transparent dark olive */
+  color: var(--farm-olive-text) !important;
+  text-decoration: line-through; /* Optional styling for booked */
+}
+
+/* 6. LIST ITEM BADGES (Confirmed/Family) */
+.bg-blue-100, .bg-green-100, .bg-purple-100 {
+  background-color: rgba(74, 93, 68, 0.15) !important; /* Dark olive with opacity */
+  color: var(--farm-olive-text) !important;
+  border: none !important;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-size: 0.7rem !important;
 }
