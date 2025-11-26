@@ -183,7 +183,7 @@ export default function Dashboard() {
         
         <button onClick={() => router.push('/trips')} className="bg-purple-600 text-white p-4 rounded-xl shadow hover:bg-purple-700 transition flex items-center justify-center gap-3">
           <span className="text-2xl">🏡</span>
-          <span className="font-bold text-lg">All Farmhouse Trips</span>
+          <span className="font-bold text-lg">All Upcoming Trips</span>
         </button>
 
         <div className="grid grid-cols-2 gap-4">

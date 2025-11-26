@@ -15,7 +15,12 @@ export default function Login() {
 
   useEffect(() => {
     async function getFamilies() {
-      const { data } = await supabase.from('families').select('*')
+      // Force order by ID so the list order never jumps around when scores change
+      const { data } = await supabase
+        .from('families')
+        .select('*')
+        .order('id', { ascending: true }) 
+      
       if (data) setFamilies(data)
     }
     getFamilies()
@@ -42,26 +47,22 @@ export default function Login() {
     }
 
     // 2. FIND OR CREATE "SHARED" FAMILY USER
-    // Instead of creating "Ali", we check if a user exists for this family specifically.
-    // We use the Family Name as the User Name.
-    
     const { data: existingUser } = await supabase
       .from('users')
       .select('id')
       .eq('family_id', selectedFamily.id)
-      .limit(1) // Just grab the first one (The Shared Account)
+      .limit(1) 
       .maybeSingle()
 
     let userId = existingUser?.id
 
     if (!userId) {
-      // Create the Shared Account for the first time
       userId = crypto.randomUUID()
       
       const { error: dbError } = await supabase.from('users').insert([
         {
           id: userId,
-          full_name: selectedFamily.name, // User name = Family Name
+          full_name: selectedFamily.name, 
           family_id: selectedFamily.id,
           role: 'MEMBER'
         }
@@ -119,7 +120,7 @@ export default function Login() {
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Secret PIN</label>
             <input 
-              type="tel" // Numeric keypad on mobile
+              type="tel" 
               required
               placeholder="••••"
               maxLength={4}
@@ -127,10 +128,6 @@ export default function Login() {
               value={formData.pin}
               onChange={e => setFormData({...formData, pin: e.target.value})}
             />
-          </div>
-
-          <div>
-            <label className="block text-sm text-gray-500 text-center">Forgot PIN? Contact Shehwaar.</label>
           </div>
 
           {error && <div className="p-3 bg-red-100 text-red-800 rounded-lg text-sm text-center font-bold">{error}</div>}
