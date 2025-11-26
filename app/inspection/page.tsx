@@ -1,4 +1,7 @@
 'use client'
+// Prevent build errors with useSearchParams
+export const dynamic = 'force-dynamic'
+
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '../utils/supabaseClient'
