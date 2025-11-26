@@ -1,12 +1,13 @@
 'use client'
-// Prevent build errors with useSearchParams
+// Fix for Vercel Build: Force dynamic rendering & Add Suspense
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '../utils/supabaseClient'
 
-export default function InspectionPage() {
+// 1. Inner Component (Logic that needs URL params)
+function InspectionContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const bookingId = searchParams.get('id')
@@ -16,7 +17,7 @@ export default function InspectionPage() {
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState('')
 
-  if (!bookingId) return <div className="p-10">Error: No Booking ID found.</div>
+  if (!bookingId) return <div className="p-10 text-center text-red-600 font-bold">Error: No Booking ID found.</div>
 
   async function handleSubmit() {
     setLoading(true)
@@ -53,12 +54,10 @@ export default function InspectionPage() {
         .limit(1)
 
       if (previousBookings && previousBookings.length > 0) {
-        // FIX: We cast this to 'any' to stop TypeScript from complaining about the 'families' array/object mismatch
         const culprit: any = previousBookings[0]
         
         const penalty = 5 
         
-        // Now TypeScript won't complain about .families.base_priority_score
         const newScore = culprit.families.base_priority_score - penalty
 
         await supabase
@@ -107,5 +106,14 @@ export default function InspectionPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+// 2. Wrapper Component (Satisfies Next.js Build)
+export default function InspectionPage() {
+  return (
+    <Suspense fallback={<div className="p-10 text-center font-bold">Loading Inspection...</div>}>
+      <InspectionContent />
+    </Suspense>
   )
 }
