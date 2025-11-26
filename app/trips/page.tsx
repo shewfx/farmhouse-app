@@ -7,31 +7,102 @@ export default function TripsPage() {
   const router = useRouter()
   const [allBookings, setAllBookings] = useState<any[]>([])
   const [myFamilyId, setMyFamilyId] = useState<string | null>(null)
+  const [cancelLoading, setCancelLoading] = useState(false)
 
   useEffect(() => {
-    async function getData() {
-      const fId = localStorage.getItem('farmhouse_family_id')
-      setMyFamilyId(fId)
-
-      const today = new Date().toISOString().split('T')[0]
-      
-      // Fetch ALL bookings for everyone
-      const { data } = await supabase
-        .from('bookings')
-        .select('*, families(name, base_priority_score)')
-        .gte('end_date', today)
-        .neq('status', 'CANCELLED')
-        .order('start_date', { ascending: true })
-
-      if (data) setAllBookings(data)
-    }
     getData()
   }, [])
 
+  async function getData() {
+    const fId = localStorage.getItem('farmhouse_family_id')
+    setMyFamilyId(fId)
+
+    const today = new Date().toISOString().split('T')[0]
+    
+    // Fetch ALL bookings for everyone
+    const { data } = await supabase
+      .from('bookings')
+      .select('*, families(name, base_priority_score)')
+      .gte('end_date', today)
+      .neq('status', 'CANCELLED')
+      .order('start_date', { ascending: true })
+
+    if (data) setAllBookings(data)
+  }
+
   function handleChallenge(booking: any) {
-    // Redirect to booking page with these dates pre-filled
-    // This triggers the existing "Battle Logic" in the booking form
     router.push(`/booking?date=${booking.start_date}&endDate=${booking.end_date}`)
+  }
+
+  // === CANCELLATION LOGIC ===
+  async function handleCancel(booking: any) {
+    if (!confirm('Are you sure you want to cancel this trip?')) return
+    setCancelLoading(true)
+
+    const familyId = localStorage.getItem('farmhouse_family_id')
+    
+    // 1. GRACE PERIOD CHECK (1 Hour)
+    const createdAt = new Date(booking.created_at).getTime()
+    const now = new Date().getTime()
+    const hoursSinceBooking = (now - createdAt) / (1000 * 60 * 60)
+
+    let penalty = 0
+    let penaltyMsg = "Free Cancellation"
+
+    if (hoursSinceBooking > 1) {
+        // 2. STANDARD PENALTY CHECK
+        const start = new Date(booking.start_date)
+        const today = new Date()
+        start.setHours(0,0,0,0)
+        today.setHours(0,0,0,0)
+
+        const diffTime = start.getTime() - today.getTime()
+        const daysBefore = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+        if (daysBefore <= 1) { 
+            penalty = 15
+            penaltyMsg = "Late Cancellation (1 Day before)"
+        } else if (daysBefore <= 2) {
+            penalty = 8
+            penaltyMsg = "Late Cancellation (2 Days before)"
+        } else if (daysBefore <= 3) {
+            penalty = 5
+            penaltyMsg = "Late Cancellation (3 Days before)"
+        }
+    } else {
+        penaltyMsg = "Free - Grace Period"
+    }
+
+    // Apply Penalty
+    if (penalty > 0) {
+      const { data: familyData } = await supabase
+        .from('families')
+        .select('base_priority_score')
+        .eq('id', familyId)
+        .single()
+      
+      if (familyData) {
+          const newScore = familyData.base_priority_score - penalty
+          await supabase.from('families').update({ base_priority_score: newScore }).eq('id', familyId)
+      }
+    }
+
+    // Update Status
+    const { error } = await supabase
+      .from('bookings')
+      .update({ status: 'CANCELLED' })
+      .eq('id', booking.id)
+
+    if (error) {
+      alert('Error cancelling booking.')
+    } else {
+      alert(penalty > 0 
+        ? `⚠️ Booking Cancelled. Penalty: -${penalty} pts (${penaltyMsg})` 
+        : `✅ Booking Cancelled (${penaltyMsg})`)
+      
+      getData() // Refresh list
+    }
+    setCancelLoading(false)
   }
 
   return (
@@ -69,16 +140,29 @@ export default function TripsPage() {
                   </div>
                 </div>
 
-                {/* CHALLENGE BUTTON: Show if it's PENDING and NOT my family */}
-                {isPending && !isMyFamily && (
-                  <button 
-                    onClick={() => handleChallenge(booking)}
-                    className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold shadow hover:bg-red-700 hover:scale-105 transition-all text-sm flex flex-col items-center"
-                  >
-                    <span>⚔️ Challenge</span>
-                    <span className="text-[10px] font-normal opacity-90">Steal Booking</span>
-                  </button>
-                )}
+                <div className="flex flex-col gap-2">
+                    {/* CHALLENGE BUTTON: Show if it's PENDING and NOT my family */}
+                    {isPending && !isMyFamily && (
+                    <button 
+                        onClick={() => handleChallenge(booking)}
+                        className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold shadow hover:bg-red-700 hover:scale-105 transition-all text-sm flex flex-col items-center"
+                    >
+                        <span>⚔️ Challenge</span>
+                        <span className="text-[10px] font-normal opacity-90">Steal Booking</span>
+                    </button>
+                    )}
+
+                    {/* CANCEL BUTTON: Show if it IS my family */}
+                    {isMyFamily && (
+                        <button 
+                            onClick={() => handleCancel(booking)}
+                            disabled={cancelLoading}
+                            className="bg-red-50 border border-red-500 text-red-700 px-4 py-2 rounded-lg font-bold text-sm hover:bg-red-100 transition-colors shadow-sm flex items-center gap-2"
+                        >
+                            <span>🗑️</span> Cancel
+                        </button>
+                    )}
+                </div>
               </div>
             )
           })}

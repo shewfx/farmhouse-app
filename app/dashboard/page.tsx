@@ -53,12 +53,10 @@ export default function Dashboard() {
           const createdTime = new Date(booking.created_at).getTime()
           const hoursDiff = (now - createdTime) / (1000 * 60 * 60)
           
-          // NEW: Check if the Trip Start Date has already arrived
-          // (This fixes the "Book for Tomorrow" loophole)
+          // Check if trip started
           const tripStartTime = new Date(booking.start_date).getTime()
           const hasTripStarted = now >= tripStartTime
 
-          // Confirm if 48 hours have passed OR if the trip has started
           if (hoursDiff >= 48 || hasTripStarted) {
             await supabase.from('bookings').update({ status: 'CONFIRMED' }).eq('id', booking.id)
             
@@ -141,11 +139,11 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      {/* Header */}
+      {/* Header - UPDATED TO REMOVE REDUNDANCY */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Welcome, {user?.full_name}</h1>
-          <p className="text-gray-600">Representing: <span className="font-semibold">{family?.name}</span></p>
+          <h1 className="text-3xl font-bold text-gray-800">NazVik Konnect</h1>
+          <p className="text-gray-600 text-lg">Welcome, <span className="font-semibold">{family?.name}</span></p>
         </div>
         <button onClick={handleLogout} className="text-sm text-red-600 font-medium hover:underline">Logout</button>
       </div>
@@ -183,7 +181,6 @@ export default function Dashboard() {
           <span className="font-bold text-lg">Book New Dates</span>
         </button>
         
-        {/* THE RESTORED BUTTON */}
         <button onClick={() => router.push('/trips')} className="bg-purple-600 text-white p-4 rounded-xl shadow hover:bg-purple-700 transition flex items-center justify-center gap-3">
           <span className="text-2xl">🏡</span>
           <span className="font-bold text-lg">All Farmhouse Trips</span>
