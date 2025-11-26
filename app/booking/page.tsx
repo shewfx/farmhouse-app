@@ -1,4 +1,7 @@
 'use client'
+// Fix for Vercel Build Error: Force dynamic rendering for useSearchParams
+export const dynamic = 'force-dynamic'
+
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '../utils/supabaseClient'
