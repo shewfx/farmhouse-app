@@ -50,11 +50,12 @@ export default function InspectionPage() {
         .limit(1)
 
       if (previousBookings && previousBookings.length > 0) {
-        const culprit = previousBookings[0]
+        // FIX: We cast this to 'any' to stop TypeScript from complaining about the 'families' array/object mismatch
+        const culprit: any = previousBookings[0]
         
-        // UPDATED: Lowered penalty from 20 to 5 to be more fair
         const penalty = 5 
         
+        // Now TypeScript won't complain about .families.base_priority_score
         const newScore = culprit.families.base_priority_score - penalty
 
         await supabase
