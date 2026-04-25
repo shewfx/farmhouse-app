@@ -87,8 +87,8 @@ export default function Login() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
       
       <div className="mb-8 text-center">
-        <h1 className="text-4xl font-bold text-gray-800 mb-2">🏡 NazVik Konnect</h1>
-        <p className="text-gray-600">Family Booking System</p>
+        <h1 className="text-4xl font-bold text-gray-800 mb-2">NazVik Konnect</h1>
+        <p className="text-gray-600">Farmhouse Booking System</p>
       </div>
 
       <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md border-2 border-transparent">
